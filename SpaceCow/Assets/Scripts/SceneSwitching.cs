@@ -13,14 +13,9 @@ public class SceneSwitching : MonoBehaviour
     }
     public void StartGame()
     {
-        SceneManager.LoadScene("Tutorial");
+        SceneManager.LoadScene("Game");
     }
 
-    public void SettingsMenu()
-    {
-        SceneManager.LoadScene("Settings");
-    }
-    
     public void Credits()
     {
         SceneManager.LoadScene("Credits Menu");
@@ -28,7 +23,7 @@ public class SceneSwitching : MonoBehaviour
 
     public void MainMenu()
     {
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("Main Menu");
     }
 
     public void Exit()
