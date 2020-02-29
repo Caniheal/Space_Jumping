@@ -12,9 +12,14 @@ public class PlayerController : MonoBehaviour
     public float JumpingMultiplier = .5f;
     public Transform FeetLocation;
     public Rigidbody2D RigidBody;
+    public CapsuleCollider2D Collider;
     public Camera Camera;
 
+    public float CameraSpeed = .1f;
+
     private Animator anim;
+    private bool gameStarted = false;
+    private float Nextjumpdelay = 0f;
 
     void Start()
     {
@@ -39,16 +44,26 @@ public class PlayerController : MonoBehaviour
             Application.Quit();
         }
 
+        //Finding Layers
         int layerMask = 1 << 9;
         layerMask = ~layerMask;
+
+        //Shooting raycast downwards to see if on ground
         bool grounded = Physics2D.Raycast(FeetLocation.position, Vector2.down, .05f, layerMask);
 
+        Nextjumpdelay -= Time.deltaTime;
+
         // jump
-        if (grounded && Input.GetKey(KeyCode.Space))
+        if (grounded && Nextjumpdelay <= 0 &&  Input.GetKey(KeyCode.Space))
         {
             Direction += Vector3.up * JumpSpeed;
+            gameStarted = true;
+            Nextjumpdelay = .2f;
+
         }
 
+        //Sees weather or not player is on ground
+        //GRAVITY
         if (!grounded)
         {
             //current character velocity
@@ -71,12 +86,20 @@ public class PlayerController : MonoBehaviour
         //anim.SetBool("isJumping", bisjumping);
         Debug.Log(bIsrunning + "Running");
         Debug.Log(bisjumping + "Jumping");
+        Debug.Log(grounded + "grounded");
 
         Direction.y = Direction.y + RigidBody.velocity.y;
         RigidBody.velocity = Direction;
 
-        Vector3 cameraposition = Camera.transform.position;
-        cameraposition.x = transform.position.x;
-        Camera.transform.position = cameraposition;
+        //Enable when on ground, disable when not SO WE CAN JUMP THRU CLOUDS
+        Collider.enabled = grounded;
+
+        if (gameStarted)
+        {
+            Vector3 cameraposition = Camera.transform.position;
+            //makes camera move upwards
+            cameraposition.y = cameraposition.y + CameraSpeed;
+            Camera.transform.position = cameraposition;
+        }
     }
 }
