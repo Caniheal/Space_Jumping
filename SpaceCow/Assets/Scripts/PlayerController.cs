@@ -14,6 +14,10 @@ public class PlayerController : MonoBehaviour
     public Rigidbody2D RigidBody;
     public CapsuleCollider2D Collider;
     public Camera Camera;
+    public SpriteRenderer Render;
+    public GameObject screens;
+    public GameObject winscreen;
+    public GameObject losescreen;
 
     public float CameraSpeed = .1f;
 
@@ -24,6 +28,16 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         anim = GetComponent<Animator>();
+    }
+
+    void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.tag == "Finish")
+        {
+            screens.SetActive(true);
+            winscreen.SetActive(true);
+            gameObject.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -54,7 +68,7 @@ public class PlayerController : MonoBehaviour
         Nextjumpdelay -= Time.deltaTime;
 
         // jump
-        if (grounded && Nextjumpdelay <= 0 &&  Input.GetKey(KeyCode.Space))
+        if (grounded && Nextjumpdelay <= 0 && Input.GetKey(KeyCode.Space) && RigidBody.velocity.y <= 0)
         {
             Direction += Vector3.up * JumpSpeed;
             gameStarted = true;
@@ -84,15 +98,21 @@ public class PlayerController : MonoBehaviour
 
        // anim.SetBool("isRunning", bIsrunning && !bisjumping);
         //anim.SetBool("isJumping", bisjumping);
-        Debug.Log(bIsrunning + "Running");
-        Debug.Log(bisjumping + "Jumping");
-        Debug.Log(grounded + "grounded");
+       // Debug.Log(bIsrunning + "Running");
+       // Debug.Log(bisjumping + "Jumping");
+       // Debug.Log(grounded + "grounded");
 
         Direction.y = Direction.y + RigidBody.velocity.y;
         RigidBody.velocity = Direction;
 
         //Enable when on ground, disable when not SO WE CAN JUMP THRU CLOUDS
         Collider.enabled = grounded;
+
+        if (!IsVisible())
+        {
+            screens.SetActive(true);
+            losescreen.SetActive(true);
+        }
 
         if (gameStarted)
         {
@@ -101,5 +121,14 @@ public class PlayerController : MonoBehaviour
             cameraposition.y = cameraposition.y + CameraSpeed;
             Camera.transform.position = cameraposition;
         }
+    }
+
+    private bool IsVisible()
+    {
+        Plane[] planes = GeometryUtility.CalculateFrustumPlanes(Camera);
+        if (GeometryUtility.TestPlanesAABB(planes, Collider.bounds))
+            return true;
+        else
+            return false;
     }
 }
