@@ -13,11 +13,22 @@ public class PlayerController : MonoBehaviour
     public Transform FeetLocation;
     public Rigidbody2D RigidBody;
     public CapsuleCollider2D Collider;
+    public CapsuleCollider2D LoseCollider;
+
     public Camera Camera;
     public SpriteRenderer Render;
     public GameObject screens;
     public GameObject winscreen;
     public GameObject losescreen;
+    public GameObject winscreenimage;
+    public GameObject losescreenimage;
+    public GameObject background;
+
+    public GameObject platformcatus;
+    public GameObject platformclouds;
+    public GameObject platformstars;
+    public AudioSource jumpSound;
+
 
     public float CameraSpeed = .1f;
 
@@ -36,7 +47,26 @@ public class PlayerController : MonoBehaviour
         {
             screens.SetActive(true);
             winscreen.SetActive(true);
+            winscreenimage.SetActive(true);
+
+            platformcatus.SetActive(false);
+            platformclouds.SetActive(false);
+            platformstars.SetActive(false);
+            background.SetActive(false);
+
             gameObject.SetActive(false);
+        }
+        if (col.tag == "Death")
+        {
+            screens.SetActive(true);
+            losescreen.SetActive(true);
+
+            platformcatus.SetActive(false);
+            platformclouds.SetActive(false);
+            platformstars.SetActive(false);
+            background.SetActive(false);
+
+            losescreenimage.SetActive(true);
         }
     }
 
@@ -44,14 +74,44 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         Vector3 Direction = Vector3.zero;
-        if (Input.GetKey(KeyCode.LeftArrow))
+               if (Input.GetKey(KeyCode.LeftArrow))
+               {
+                   Direction.x -= Speed;
+               }
+               if (Input.GetKey(KeyCode.RightArrow))
+               {
+                   Direction.x += Speed;
+               }
+               
+
+        bool jumpclicked = Input.GetKey(KeyCode.Space);
+
+        if (Input.GetMouseButton(0))
         {
-            Direction.x -= Speed;
+            Vector3 WorldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            Vector3 Screen =  Camera.main.WorldToScreenPoint(gameObject.transform.position);
+            if (Input.mousePosition.x < Screen.x)
+            {
+                Direction.x -= Speed;
+            }
+            else
+            {
+                Direction.x += Speed;
+            }
+
+            jumpclicked = true;
         }
-        if (Input.GetKey(KeyCode.RightArrow))
+
+        if (Direction.x >= Speed * .5f)
         {
-            Direction.x += Speed;
+            Render.flipX = true;
         }
+        if (Direction.x <= Speed * .5f)
+        {
+            Render.flipX = false;
+        }
+
 
         if (Input.GetKey(KeyCode.Escape))
         {
@@ -68,12 +128,12 @@ public class PlayerController : MonoBehaviour
         Nextjumpdelay -= Time.deltaTime;
 
         // jump
-        if (grounded && Nextjumpdelay <= 0 && Input.GetKey(KeyCode.Space) && RigidBody.velocity.y <= 0)
+        if (jumpclicked && grounded && Nextjumpdelay <= 0 && RigidBody.velocity.y <= 0)
         {
             Direction += Vector3.up * JumpSpeed;
             gameStarted = true;
             Nextjumpdelay = .2f;
-
+            jumpSound.Play();
         }
 
         //Sees weather or not player is on ground
@@ -96,8 +156,8 @@ public class PlayerController : MonoBehaviour
         bool bIsrunning = Mathf.Abs(RigidBody.velocity.x) > .1;
         bool bisjumping = Mathf.Abs(RigidBody.velocity.y) > .5;
 
-       // anim.SetBool("isRunning", bIsrunning && !bisjumping);
-        //anim.SetBool("isJumping", bisjumping);
+        anim.SetBool("isRunning", bIsrunning && !bisjumping);
+        anim.SetBool("isJumping", bisjumping);
        // Debug.Log(bIsrunning + "Running");
        // Debug.Log(bisjumping + "Jumping");
        // Debug.Log(grounded + "grounded");
@@ -107,12 +167,6 @@ public class PlayerController : MonoBehaviour
 
         //Enable when on ground, disable when not SO WE CAN JUMP THRU CLOUDS
         Collider.enabled = grounded;
-
-        if (!IsVisible())
-        {
-            screens.SetActive(true);
-            losescreen.SetActive(true);
-        }
 
         if (gameStarted)
         {
